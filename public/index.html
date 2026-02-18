@@ -1,29 +1,177 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>MouddzServices Checkout</title>
-  <link rel="stylesheet" href="/styles.css">
-
+  <link rel="stylesheet" href="/styles.css" />
 </head>
 <body>
-  <div class="checkout-box">
-    <h1>MouddzServices</h1>
-    <p>Select Your Plan</p>
+  <div class="page">
+    <div class="modal">
+      <div class="modalTop">
+        <div class="brand">
+          <div class="logo">M</div>
+          <div>
+            <div class="brandName">MouddzServices</div>
+            <div class="brandTag">secure checkout</div>
+          </div>
+        </div>
+        <div class="amount">
+          <div class="amountLabel" id="planLabel">Select a plan</div>
+          <div class="amountValue" id="amountValue">$—</div>
+        </div>
+      </div>
 
-    <div class="plan">
-      <h2>Secret V2 Lifetime</h2>
-      <p>$75</p>
+      <div class="field">
+        <label>Email</label>
+        <input id="email" type="email" placeholder="you@email.com" />
+      </div>
+
+      <div class="sectionTitle">Plans</div>
+
+      <!-- ✅ 4 separate selectable products -->
+      <div class="plans">
+        <button class="plan" data-name="Secret V2 Lifetime" data-price="75">
+          <div class="left">
+            <div class="dot"></div>
+            <div class="text">
+              <div class="title">Secret V2 Lifetime</div>
+              <div class="sub">Lifetime access</div>
+            </div>
+          </div>
+          <div class="price">$75.00</div>
+        </button>
+
+        <button class="plan" data-name="Updates Plan (1 month)" data-price="20">
+          <div class="left">
+            <div class="dot"></div>
+            <div class="text">
+              <div class="title">Guaranteed access to updates</div>
+              <div class="sub">1 month</div>
+            </div>
+          </div>
+          <div class="price">$20.00</div>
+        </button>
+
+        <button class="plan" data-name="Updates Plan (3 months)" data-price="50">
+          <div class="left">
+            <div class="dot"></div>
+            <div class="text">
+              <div class="title">Guaranteed access to updates</div>
+              <div class="sub">3 months</div>
+            </div>
+          </div>
+          <div class="price">$50.00</div>
+        </button>
+
+        <button class="plan" data-name="Updates Plan (lifetime)" data-price="100">
+          <div class="left">
+            <div class="dot"></div>
+            <div class="text">
+              <div class="title">Guaranteed access to updates</div>
+              <div class="sub">Lifetime</div>
+            </div>
+          </div>
+          <div class="price">$100.00</div>
+        </button>
+      </div>
+
+      <div class="sectionTitle">Payment methods</div>
+      <div class="payMethods">
+        <button class="payBtn cash" data-method="cashapp">Cash App</button>
+        <button class="payBtn paypal" data-method="paypal">PayPal</button>
+        <button class="payBtn card" data-method="card">Card</button>
+      </div>
+
+      <div class="summary">
+        <div class="totalRow">
+          <div class="muted">Total due today</div>
+          <div class="total" id="total">$—</div>
+        </div>
+
+        <button class="join" id="continueBtn" disabled>Continue</button>
+        <div class="fineprint muted">No crypto accepted.</div>
+      </div>
     </div>
-
-    <div class="plan">
-      <h2>Guaranteed Access to Updates</h2>
-      <p>1 Month - $20</p>
-      <p>3 Months - $50</p>
-      <p>Lifetime - $100</p>
-    </div>
-
-    <button class="join-btn">Join</button>
   </div>
+
+  <script>
+    // ✅ Replace these
+    const CASHAPP_TAG = "YourCashTag";      // no $
+    const PAYPAL_ME = "YourPaypalUsername"; // no https://
+
+    // Optional: Stripe Payment Links per price
+    const STRIPE_LINKS = {
+      "75":  "YOUR_STRIPE_LINK_75",
+      "20":  "YOUR_STRIPE_LINK_20",
+      "50":  "YOUR_STRIPE_LINK_50",
+      "100": "YOUR_STRIPE_LINK_100"
+    };
+
+    let selectedPlan = null;
+    let selectedMethod = null;
+
+    const planLabel = document.getElementById("planLabel");
+    const amountValue = document.getElementById("amountValue");
+    const total = document.getElementById("total");
+    const emailEl = document.getElementById("email");
+    const continueBtn = document.getElementById("continueBtn");
+
+    const money = (n) => `$${Number(n).toFixed(2)}`;
+
+    function refreshContinue() {
+      const hasEmail = emailEl.value.trim().includes("@");
+      continueBtn.disabled = !(selectedPlan && selectedMethod && hasEmail);
+    }
+    emailEl.addEventListener("input", refreshContinue);
+
+    document.querySelectorAll(".plan").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".plan").forEach(x => x.classList.remove("active"));
+        btn.classList.add("active");
+        selectedPlan = { name: btn.dataset.name, price: btn.dataset.price };
+        planLabel.textContent = selectedPlan.name;
+        amountValue.textContent = money(selectedPlan.price);
+        total.textContent = money(selectedPlan.price);
+        refreshContinue();
+      });
+    });
+
+    document.querySelectorAll(".payBtn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".payBtn").forEach(x => x.classList.remove("activePay"));
+        btn.classList.add("activePay");
+        selectedMethod = btn.dataset.method;
+        refreshContinue();
+      });
+    });
+
+    continueBtn.addEventListener("click", () => {
+      const email = emailEl.value.trim();
+      const note = `MouddzServices | ${selectedPlan.name} | ${money(selectedPlan.price)} | Email: ${email}`;
+
+      if (selectedMethod === "cashapp") {
+        alert("Paste this in Cash App notes:\n\n" + note);
+        window.location.href = `https://cash.app/$${CASHAPP_TAG}`;
+        return;
+      }
+
+      if (selectedMethod === "paypal") {
+        alert("Paste this in PayPal note/message:\n\n" + note);
+        window.location.href = `https://paypal.me/${PAYPAL_ME}/${selectedPlan.price}`;
+        return;
+      }
+
+      if (selectedMethod === "card") {
+        const link = STRIPE_LINKS[String(selectedPlan.price)];
+        if (!link || link.startsWith("YOUR_")) {
+          alert("Card checkout not set up yet for $" + selectedPlan.price + ". Add the Stripe link in STRIPE_LINKS.");
+          return;
+        }
+        window.location.href = link;
+      }
+    });
+  </script>
 </body>
 </html>
-
