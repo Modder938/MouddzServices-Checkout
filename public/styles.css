@@ -34,3 +34,8 @@ body {
   font-size: 16px;
   cursor: pointer;
 }
+.payBtn.activePay{
+  border-color: rgba(120,140,255,0.85);
+  background: rgba(120,140,255,0.12);
+}
+
